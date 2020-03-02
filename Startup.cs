@@ -1,17 +1,17 @@
+using System.Reflection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Npgsql;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using Asp.Net_core_auth_task.Models;
 
 namespace Asp.Net_core_auth_task
@@ -28,15 +28,18 @@ namespace Asp.Net_core_auth_task
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {            
-            services.AddDbContext<TokoKokoContext>(options => options.UseNpggl(""));
+            services.AddDbContext<TokoKokoContext>(options => options.UseNpgsql("Host=localhost;Database=dbtokokoko;Username=postgres;Password=sayangkamu"));
             services.AddControllers();
-            services.AddControllers(options =>
+           services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options => 
             {
-                options.InputFormatters.Insert(0, GetJsonPatchInputFormatter());
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateIssuerSigningKey = true, 
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes("ini secret key nya harus panjang")),
+                };
             });
-            services
-            .AddControllersWithViews()
-            .AddNewtonsoftJson();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
